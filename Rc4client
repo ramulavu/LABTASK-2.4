@@ -1,0 +1,35 @@
+import socket
+from Crypto.Cipher import ARC4
+
+# RC4 encryption function
+def rc4_encrypt(key, data):
+    cipher = ARC4.new(key)
+    return cipher.encrypt(data)
+
+def main():
+    host = '127.0.0.1'
+    port = 12345
+    key = b'secret_key'  # Key for RC4 encryption
+    
+    # Read the file to be sent
+    input_file = "file_to_send.txt"
+    with open(input_file, 'rb') as f:
+        data = f.read()
+    
+    # Encrypt the data
+    encrypted_data = rc4_encrypt(key, data)
+    
+    # Save the encrypted file locally
+    with open("encrypted_client.txt", 'wb') as f:
+        f.write(encrypted_data)
+    
+    # Connect to the server and send encrypted data
+    client_socket = socket.socket()
+    client_socket.connect((host, port))
+    client_socket.sendall(encrypted_data)
+    print(f"Encrypted file '{input_file}' sent to server.")
+    
+    client_socket.close()
+
+if __name__ == '__main__':
+    main()
