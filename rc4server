@@ -1,0 +1,41 @@
+import socket
+from Crypto.Cipher import ARC4
+
+# RC4 decryption function
+def rc4_decrypt(key, encrypted_data):
+    cipher = ARC4.new(key)
+    return cipher.decrypt(encrypted_data)
+
+def main():
+    host = '127.0.0.1'
+    port = 12345
+    key = b'secret_key'  # Key for RC4 decryption
+    
+    # Create server socket and listen for connection
+    server_socket = socket.socket()
+    server_socket.bind((host, port))
+    server_socket.listen(1)
+    print("Server is listening...")
+    
+    conn, addr = server_socket.accept()
+    print(f"Connection from {addr}")
+    
+    # Receive encrypted data from the client
+    encrypted_data = conn.recv(4096)
+    
+    # Save the encrypted data to a file
+    with open("encrypted_server.txt", 'wb') as f:
+        f.write(encrypted_data)
+    
+    # Decrypt the received data
+    decrypted_data = rc4_decrypt(key, encrypted_data)
+    
+    # Save the decrypted data to a file
+    with open("decrypted_server.txt", 'wb') as f:
+        f.write(decrypted_data)
+    
+    print("Files saved: 'encrypted_server.txt' and 'decrypted_server.txt'")
+    conn.close()
+
+if __name__ == '__main__':
+    main()
