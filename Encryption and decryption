@@ -1,0 +1,68 @@
+def rc4_initialize(key):
+    """Initialize the key-scheduling algorithm (KSA)."""
+    key_length = len(key)
+    S = list(range(256))  # Initialize S to [0, 1, 2, ..., 255]
+    j = 0
+
+    # Key scheduling
+    for i in range(256):
+        j = (j + S[i] + key[i % key_length]) % 256
+        S[i], S[j] = S[j], S[i]  # Swap values
+
+    return S
+
+
+def rc4_generate_keystream(S):
+    """Generate the pseudo-random generation algorithm (PRGA) keystream."""
+    i = 0
+    j = 0
+    while True:
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]  # Swap values
+        K = S[(S[i] + S[j]) % 256]
+        yield K
+
+
+def rc4_encrypt_decrypt(key, data):
+    """Encrypt or decrypt data using RC4."""
+    key = [ord(c) for c in key]  # Convert key to ASCII values
+    S = rc4_initialize(key)  # Initialize S-box
+    keystream = rc4_generate_keystream(S)  # Generate keystream
+
+    # XOR each byte of data with the keystream
+    return bytes([b ^ next(keystream) for b in data])
+
+
+def encrypt_file(input_file, output_file, key):
+    """Encrypt a file using RC4."""
+    with open(input_file, 'rb') as f:
+        plaintext = f.read()
+    encrypted_data = rc4_encrypt_decrypt(key, plaintext)
+    with open(output_file, 'wb') as f:
+        f.write(encrypted_data)
+    print(f"File encrypted and saved to {output_file}")
+
+
+def decrypt_file(input_file, output_file, key):
+    """Decrypt a file using RC4."""
+    with open(input_file, 'rb') as f:
+        encrypted_data = f.read()
+    decrypted_data = rc4_encrypt_decrypt(key, encrypted_data)
+    with open(output_file, 'wb') as f:
+        f.write(decrypted_data)
+    print(f"File decrypted and saved to {output_file}")
+
+
+# Main Program
+if __name__ == "__main__":
+    key = "my_secret_key"  # Key for encryption/decryption
+
+    # Encrypt a file
+    input_file = "example.txt"  # Replace with your file path
+    encrypted_file = "encrypted_example.txt"
+    encrypt_file(input_file, encrypted_file, key)
+
+    # Decrypt the file
+    decrypted_file = "decrypted_example.txt"
+    decrypt_file(encrypted_file, decrypted_file, key)
